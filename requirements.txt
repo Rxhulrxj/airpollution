@@ -1,0 +1,7 @@
+Django==4.0.4
+keras==2.8.0
+numpy==1.22.3
+pandas==1.4.2
+pytz==2020.1
+requests==2.27.1
+scikit_learn==1.0.2

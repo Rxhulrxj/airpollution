@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    ================================================== -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>AQI</title>
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keywords" content="">
+
+    <!-- Mobile Specific Metas
+    ================================================== -->
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,600,700" rel="stylesheet">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css">
+
+    <!-- Favicon
+    ================================================== -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon.png' %}">
+
+    <!-- Stylesheets
+    ================================================== -->
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/Chart.min.js"></script>
+
+    <![endif]-->
+    <style>
+        #table,tr,th{
+        text-align:center;
+        }
+        .aqisection{
+             display:flex;
+             flex-direction:column;
+             justify-content:center;
+             align-items:center;
+        }
+        .aqisection > h5 {
+        text-align:center;
+        }
+        #chart {
+            max-width: 650px;
+            margin: 35px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="masthead" class="site-header">
+        <nav id="primary-navigation" class="site-navigation">
+            <div class="container">
+
+                <div class="navbar-header">
+
+                    <a class="site-title"><span>AQI</span>Forecast</a>
+
+                </div><!-- /.navbar-header -->
+
+                <div class="collapse navbar-collapse" id="agency-navbar-collapse">
+
+                    <ul class="nav navbar-nav navbar-right">
+
+                        <li><a href="{% url 'dashboard' %}">Home</a></li>
+
+                        {% if user.is_authenticated %}
+                        <li><a href="/adminpage">Admin Panel</a></li>
+                        <li><a href="{% url 'auth_logout' %}">Logout</a></li>
+                        {% else %}
+                        <li><a href="/accounts/login">Log in</a></li>
+                         {% endif %}
+                    </ul>
+
+                </div>
+
+            </div>
+        </nav><!-- /.site-navigation -->
+    </header><!-- /#mastheaed -->
+
+    <main id="main" class="site-main">
+
+        <section class="site-section section-features">
+            <div class="container ">
+                <div class="row">
+                    <div>
+                            <a href="{% url 'feed' %}">Refresh the page</a>
+                            <form action="" method="get" enctype="multipart/form-data">
+                            <input type="text" name="city">
+                            <button type="submit" value="search">Search</button>
+                            </form>
+                        <div class="aqisection">
+                            {% if data.status == "ok" %}
+                            <h2 style="text-align:center">Station: {{data.data.city.name}}</h2>
+                            <div class="aqisection">
+                            {% if data.data.aqi <= 50 %}
+                            <h5 style="background-color:#00B050;color:#fff;border-radius:50%;width:120px;height:50px;padding:15px;padding-left:25px;">AQI: {{data.data.aqi}}</h5>
+                            {% elif data.data.aqi >= 51 and data.data.aqi <= 100 %}
+                            <h4 style="background-color:#92D050;color:#fff;border-radius:50%;width:120px;height:50px;padding:15px;padding-left:25px;">AQI: {{data.data.aqi}}</h4>
+                            {% elif data.data.aqi >= 101 and data.data.aqi <= 200%}
+                            <h5 style="background-color:#FFFF00;;border-radius:50%;width:120px;height:50px;padding:15px;padding-left:25px;">AQI: {{data.data.aqi}}</h5>
+                            {% elif data.data.aqi >= 201 and data.data.aqi <= 300%}
+                            <h5 style="background-color:#FF9900;color:#fff;border-radius:50%;width:120px;height:50px;padding:15px;padding-left:25px;">AQI: {{data.data.aqi}}</h5>
+                            {% elif data.data.aqi >= 301 and data.data.aqi <= 400%}
+                            <h5 style="background-color:#FF0000;color:#fff;border-radius:50%;width:120px;height:50px;padding:15px;padding-left:25px;">AQI: {{data.data.aqi}}</h5>
+                            {% else %}
+                            <h5 style="background-color:#C00000;color:#fff;border-radius:50%;width:120px;height:50px;padding:15px;padding-left:25px;">AQI: {{data.data.aqi}}</h5>
+                             {% endif %}
+                            </div>
+                        <div>
+                            <h4>Major Pollutant: {{data.data.dominentpol}}</h4>
+                            <h4>Updated At : {{data.data.time.s}}</h4>
+                        </div>
+                        <div>
+
+                            <table border="2" width="100%" height="50%"  class="table table-hover">
+                                <caption>Pollutants</caption>
+                                <tr>
+                                    <th>Pollutant</th>
+                                    <th>Value</th>
+                                </tr>
+                                {% if data.data.iaqi.co.v %}
+                                <tr>
+                                    <td>Carbon Monoxide(CO)</td>
+                                    
+                                    <td>{{data.data.iaqi.co.v}}</td>
+                                    
+                                </tr>
+                                {% endif %}
+                                {% if data.data.iaqi.o3.v %}
+                                <tr>
+                                    <td>Ozone(O3)</td>
+                                    
+                                    <td>{{data.data.iaqi.o3.v}}</td>
+                                </tr>
+                                {% endif %}
+                                {% if data.data.iaqi.no2.v %}
+                                <tr>
+                                    <td>Nitrogen Oxide (no2)</td>
+                                    <td>{{data.data.iaqi.no2.v}}</td>
+                                    
+                                </tr>
+                                {% endif %}
+                                {% if data.data.iaqi.so2.v %}
+                                <tr>
+                                    <td>Sulfur Dioxide (so2)</td>
+                                    <td>{{data.data.iaqi.so2.v}}</td>
+                                </tr>
+                                {% endif %}
+                                {% if data.data.iaqi.pm25.v %}
+                                <tr>
+                                    <td>Particulate Matter 2.5 (pm25)</td>
+                                    <td>{{data.data.iaqi.pm25.v}}</td>
+                                </tr>
+                                {% endif %}
+                                {% if data.data.iaqi.pm10.v %}
+                                <tr>
+                                    <td>Particulate Matter 10 (pm10)</td>
+                                    <td>{{data.data.iaqi.pm10.v}}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        {% else %}
+                        <h2>Entered City is Invalid or Not Available.Please try out another city name.</h2>  
+                        {% endif %}
+                            </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section><!-- /.section-features -->
+        <section class="site-section section-features">
+             <div class="container">
+                <div class="row">
+                    <table border="2" width="100%" height="250px" id="table" class="table table-hover">
+                        <tr>
+                            <th>AQI</th>
+                            <th>Remarks</th>
+                            <th >Possible Health Impacts</th>
+                        </tr>
+                        <tr>
+                            <td>0-50</td>
+                            <td style="background-color:#00B050;color:#fff">Good</td>
+                            <td >Minimal impact</td>
+                        </tr>
+                        <tr>
+                            <td>51-100</td>
+                            <td style="background-color:#92D050;color:#fff">Satisfactory</td>
+                            <td>Minor breathing discomfort to sensitive people</td>
+                        </tr>
+                        <tr>
+                            <td>101-200</td>
+                            <td style="background-color:#FFFF00;">Moderate</td>
+                            <td>Breathing discomfort to the people with lungs, asthma and heart diseases</td>
+                        </tr>
+                        <tr>
+                            <td>201-300</td>
+                            <td style="background-color:#FF9900;color:#fff">Poor</td>
+                            <td>Breathing discomfort to most people on prolonged exposure</td>
+                        </tr>
+                        <tr>
+                            <td>301-400</td>
+                            <td style="background-color:#FF0000;color:#fff">Very Poor</td>
+                            <td>Respiratory illness on prolonged exposure</td>
+                        </tr>
+                        <tr>
+                            <td>401-500</td>
+                            <td style="background-color:#C00000;color:#fff">Severe</td>
+                            <td>Affects healthy people and seriously impacts those with existing diseases</td>
+                        </tr>
+                    </table>
+                </div>
+             </div>
+        </section>
+        <section class="site-section section-features">
+             <div class="container">
+                <div class="row">
+                    <h3>Forcast</h3>
+                    <table border="2" width="100%" height="250px" class="table table-hover">
+                        <tr>
+                            <th width="50%">Date</th>
+                            <th width="50%">Expected Maximum AQI Value</th>
+                        </tr>
+                        <tr>
+                            <td id="today"></td>
+                            {% if data.data.aqi <= 50 %}
+                            <td style="background-color:#00B050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{data.data.aqi}}</td>
+                            {% elif data.data.aqi >= 51 and data.data.aqi <= 100 %}
+                            <td style="background-color:#92D050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{data.data.aqi}}</td>
+                            {% elif data.data.aqi >= 101 and data.data.aqi <= 200%}
+                            <td style="background-color:#FFFF00;color:#000;width:120px;height:50px;padding:15px;padding-left:25px;">{{data.data.aqi}}</td>
+                            {% elif data.data.aqi >= 201 and data.data.aqi <= 300%}
+                            <td style="background-color:#FF9900;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{data.data.aqi}}</td>
+                            {% elif data.data.aqi >= 301 and data.data.aqi <= 400%}
+                            <td style="background-color:#FF0000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{data.data.aqi}}</td>
+                            {% else %}
+                            <td style="background-color:#C00000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{data.data.aqi}}</td>
+                             {% endif %}
+
+                        </tr>
+                        <tr>
+                            <td id="tommorrow_date"></td>
+                            {% if prediction_tomorrow <= 50 %}
+                            <td style="background-color:#00B050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_tomorrow}}</td>
+                            {% elif prediction_tomorrow >= 51 and prediction_tomorrow <= 100 %}
+                            <td style="background-color:#92D050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_tomorrow}}</td>
+                            {% elif prediction_tomorrow >= 101 and prediction_tomorrow <= 200%}
+                            <td style="background-color:#FFFF00;color:#000;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_tomorrow}}</td>
+                            {% elif prediction_tomorrow >= 201 and prediction_tomorrow <= 300%}
+                            <td style="background-color:#FF9900;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_tomorrow}}</td>
+                            {% elif prediction_tomorrow >= 301 and prediction_tomorrow <= 400%}
+                            <td style="background-color:#FF0000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_tomorrow}}</td>
+                            {% else %}
+                            <td style="background-color:#C00000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_tomorrow}}</td>
+                             {% endif %}
+                        </tr>
+                        <tr>
+                            <td id="third_date"></td>
+                            {% if prediction_dayaftertomorrow <= 50 %}
+                            <td style="background-color:#00B050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_dayaftertomorrow}}</td>
+                            {% elif prediction_dayaftertomorrow >= 51 and prediction_dayaftertomorrow <= 100 %}
+                            <td style="background-color:#92D050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_dayaftertomorrow}}</td>
+                            {% elif prediction_dayaftertomorrow >= 101 and prediction_dayaftertomorrow <= 200%}
+                            <td style="background-color:#FFFF00;color:#000;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_dayaftertomorrow}}</td>
+                            {% elif prediction_dayaftertomorrow >= 201 and prediction_dayaftertomorrow <= 300%}
+                            <td style="background-color:#FF9900;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_dayaftertomorrow}}</td>
+                            {% elif prediction_dayaftertomorrow >= 301 and prediction_dayaftertomorrow <= 400%}
+                            <td style="background-color:#FF0000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_dayaftertomorrow}}</td>
+                            {% else %}
+                            <td style="background-color:#C00000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_dayaftertomorrow}}</td>
+                             {% endif %}
+                        </tr>
+                        <tr>
+                             <td id="forth_date"></td>
+                            {% if prediction_3rdday <= 50 %}
+                            <td style="background-color:#00B050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_3rdday}}</td>
+                            {% elif prediction_3rdday >= 51 and prediction_3rdday <= 100 %}
+                            <td style="background-color:#92D050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_3rdday}}</td>
+                            {% elif prediction_3rdday >= 101 and prediction_3rdday <= 200%}
+                            <td style="background-color:#FFFF00;color:#000;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_3rdday}}</td>
+                            {% elif prediction_3rdday >= 201 and prediction_3rdday <= 300%}
+                            <td style="background-color:#FF9900;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_3rdday}}</td>
+                            {% elif prediction_3rdday >= 301 and prediction_3rdday <= 400%}
+                            <td style="background-color:#FF0000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_3rdday}}</td>
+                            {% else %}
+                            <td style="background-color:#C00000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_3rdday}}</td>
+                             {% endif %}
+                        </tr>
+                        <tr>
+                            <td id="fifth_date"></td>
+                            {% if prediction_4thday <= 50 %}
+                            <td style="background-color:#00B050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_4thday}}</td>
+                            {% elif prediction_4thday >= 51 and prediction_4thday <= 100 %}
+                            <td style="background-color:#92D050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_4thday}}</td>
+                            {% elif prediction_4thday >= 101 and prediction_4thday <= 200%}
+                            <td style="background-color:#FFFF00;color:#000;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_4thday}}</td>
+                            {% elif prediction_4thday >= 201 and prediction_4thday <= 300%}
+                            <td style="background-color:#FF9900;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_4thday}}</td>
+                            {% elif prediction_4thday >= 301 and prediction_4thday <= 400%}
+                            <td style="background-color:#FF0000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_4thday}}</td>
+                            {% else %}
+                            <td style="background-color:#C00000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_4thday}}</td>
+                             {% endif %}
+                        </tr>
+                        <tr>
+                            <td id="sixth_date"></td>
+                            {% if prediction_5thday <= 50 %}
+                            <td style="background-color:#00B050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_5thday}}</td>
+                            {% elif prediction_5thday >= 51 and prediction_5thday <= 100 %}
+                            <td style="background-color:#92D050;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_5thday}}</td>
+                            {% elif prediction_5thday >= 101 and prediction_5thday <= 200%}
+                            <td style="background-color:#FFFF00;color:#000;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_5thday}}</td>
+                            {% elif prediction_5thday >= 201 and prediction_5thday <= 300%}
+                            <td style="background-color:#FF9900;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_5thday}}</td>
+                            {% elif prediction_5thday >= 301 and prediction_5thday <= 400%}
+                            <td style="background-color:#FF0000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_5thday}}</td>
+                            {% else %}
+                            <td style="background-color:#C00000;color:#fff;width:120px;height:50px;padding:15px;padding-left:25px;">{{prediction_5thday}}</td>
+                             {% endif %}
+                        </tr>
+                    </table>
+                </div>
+             </div>
+        </section>
+
+    </main><!-- /#main -->
+
+    <footer id="colophon" class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-sm-4 col-xs-6">
+                    <a class="site-title"><span>AQI</span>Forecast</a>
+                </div>
+                <div class="col-lg-offset-4 col-md-3 col-sm-4 col-md-offset-2 col-sm-offset-0 col-xs-6 ">
+                    <h3>Keep in touch</h3>
+                    <ul class="list-unstyled contact-links">
+                        <li><i class="fa fa-envelope" aria-hidden="true"></i><a href="mailto:info@aqi.com">info@aqi.com</a></li>
+                        <li><i class="fa fa-phone" aria-hidden="true"></i><a href="tel:+000000000">+000 (00) 00 00 00 </a></li>
+                        <li><i class="fa fa-fax" aria-hidden="true"></i><a href="tel:+00000000000">+000 (00) 00 00 00</a></li>
+                    </ul>
+                </div>
+                <div class="clearfix visible-xs"></div>
+            </div>
+        </div>
+        <div class="copyright">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-8">
+                        <div class="social-links">
+                            <a class="twitter-bg" href="#"><i class="fa fa-twitter"></i></a>
+                            <a class="facebook-bg" href="#"><i class="fa fa-facebook"></i></a>
+                            <a class="pinterest" href="#"><i class="fa fa-pinterest"></i></a>
+                            <a class="linkedin-bg" href="#"><i class="fa fa-linkedin"></i></a>
+                        </div><!-- /.social-links -->
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="text-right">
+                            <p>&copy; AQIForecast</p>
+                            <p>All Rights Reserved</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.copyright -->
+    </footer><!-- /#footer -->
+
+    <script type="text/javascript">
+        var today = new Date();
+        var today_date = today.getDate() + '/'+(today.getMonth()+1)+'/'+today.getFullYear()
+        var tommorrow_date = (today.getDate()+1) + '/'+(today.getMonth()+1)+'/'+today.getFullYear()
+        var third_date = (today.getDate()+2) + '/'+(today.getMonth()+1)+'/'+today.getFullYear()
+        var forth_date = (today.getDate()+3) + '/'+(today.getMonth()+1)+'/'+today.getFullYear()
+        var fifth_date = (today.getDate()+4) + '/'+(today.getMonth()+1)+'/'+today.getFullYear()
+        var sixth_date = (today.getDate()+5) + '/'+(today.getMonth()+1)+'/'+today.getFullYear()
+        document.getElementById("today").innerHTML = today_date;
+        document.getElementById("tommorrow_date").innerHTML = tommorrow_date;
+        document.getElementById("third_date").innerHTML = third_date;
+        document.getElementById("forth_date").innerHTML = forth_date;
+        document.getElementById("fifth_date").innerHTML = fifth_date;
+        document.getElementById("sixth_date").innerHTML = sixth_date;
+    </script>
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'js/jquery.slicknav.min.js' %}"></script>
+    <script src="{% static 'js/jquery.countTo.min.js' %}"></script>
+    <script src="{% static 'js/jquery.shuffle.min.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/apexcharts.min.js' %}"></script>
+    <script src="{% static 'js/graph.js' %}"></script>
+
+</body>
+</html>
