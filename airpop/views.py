@@ -49,6 +49,7 @@ def index(request):
         y=x.get('forecast')
         # print(y.get('daily'))
         z=y.get('daily')
+        o3=''
         o3=z.get('o3')
         value_of_o3= []
         for i in o3:
@@ -75,6 +76,20 @@ def index(request):
         pm10_of_3rdday = value_of_pm10[5]
         pm10_of_4thday = value_of_pm10[6]
         pm10_of_5thday = value_of_pm10[7]
+        value_of_pm25=[]
+        pm25=z.get('pm25')
+        for i in pm25:
+            value=i['max']
+            value_of_pm25.append(value)
+        # print(value_of_pm10)
+        pm25_of_today=value_of_pm25[2]
+        # print(pm10_of_today)
+        pm25_of_tomorrow=value_of_pm25[3]
+        print("aaa",pm25_of_tomorrow)
+        pm25_of_dayaftertomorrow=value_of_pm25[4]
+        pm25_of_3rdday = value_of_pm25[5]
+        pm25_of_4thday = value_of_pm25[6]
+        pm25_of_5thday = value_of_pm25[7]
         # print(pm10_of_4thday)
         data_path=f'airpop/static/upload/{filename}'
         data=pd.read_csv(data_path)
@@ -86,23 +101,47 @@ def index(request):
 
         # print (data.head())
         x=data.drop(['date','pm25','no2','so2','co'],axis=1)
-        # print(x.shape)
+        x1=data.drop(['date','no2','so2','co'],axis=1)
+        x2=data.drop(['date','no2','so2'],axis=1)
+        # x2=data.drop(['date','so2','co'],axis=1)
         y=data['pm25']
+        y1=data['co']
+        y2=data['no2']
         # print(y.shape)
 
 
         x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=0)
+        x1_train,x1_test,y1_train,y1_test=train_test_split(x1,y1,test_size=0.2,random_state=0)
+        x2_train,x2_test,y2_train,y2_test=train_test_split(x2,y2,test_size=0.2,random_state=0)
         # print(x_test)
         model=DecisionTreeClassifier()
+        model1=DecisionTreeClassifier()
+        model2=DecisionTreeClassifier()
         modal = Sequential()
         modal.add(Bidirectional(LSTM(64)))
         model.fit(x_train,y_train)
-        prediction_today=model.predict([[pm10_of_today,o3_of_today]])
-        prediction_tomorrow=int(model.predict([[pm10_of_tomorrow,o3_of_tomorrow]]))
-        prediction_dayaftertomorrow=int(model.predict([[pm10_of_dayaftertomorrow,o3_of_dayaftertomorrow]]))
-        prediction_3rdday = int(model.predict([[pm10_of_3rdday, o3_of_3rdday]]))
-        prediction_4thday = int(model.predict([[pm10_of_4thday, o3_of_4thday]]))
-        prediction_5thday = int(model.predict([[pm10_of_5thday, o3_of_5thday]]))
+        model1.fit(x1_train,y1_train)
+        model2.fit(x2_train,y2_train)
+        pm25_prediction_tomorrow=int(model.predict([[pm10_of_tomorrow,o3_of_tomorrow]]))
+        pm25_prediction_dayaftertomorrow=int(model.predict([[pm10_of_dayaftertomorrow,o3_of_dayaftertomorrow]]))
+        pm25_prediction_3rdday = int(model.predict([[pm10_of_3rdday, o3_of_3rdday]]))
+        pm25_prediction_4thday = int(model.predict([[pm10_of_4thday, o3_of_4thday]]))
+        pm25_prediction_5thday = int(model.predict([[pm10_of_5thday, o3_of_5thday]]))
+        co_prediction_tomorrow=int(model1.predict([[pm25_prediction_tomorrow,pm10_of_tomorrow,o3_of_tomorrow]]))
+        co_prediction_dayaftertomorrow=int(model1.predict([[pm25_prediction_dayaftertomorrow,pm10_of_dayaftertomorrow,o3_of_dayaftertomorrow]]))
+        co_prediction_3rdday = int(model1.predict([[pm25_prediction_3rdday,pm10_of_3rdday, o3_of_3rdday]]))
+        co_prediction_4thday = int(model1.predict([[pm25_prediction_4thday,pm10_of_4thday, o3_of_4thday]]))
+        co_prediction_5thday = int(model1.predict([[pm25_prediction_5thday,pm10_of_5thday, o3_of_5thday]]))
+        no2_prediction_tomorrow=int(model2.predict([[pm25_prediction_tomorrow,pm10_of_tomorrow,o3_of_tomorrow,co_prediction_tomorrow]]))
+        no2_prediction_dayaftertomorrow=int(model2.predict([[pm25_prediction_dayaftertomorrow,pm10_of_dayaftertomorrow,o3_of_dayaftertomorrow,co_prediction_dayaftertomorrow]]))
+        no2_prediction_3rdday = int(model2.predict([[pm25_prediction_3rdday,pm10_of_3rdday, o3_of_3rdday,co_prediction_3rdday]]))
+        no2_prediction_4thday = int(model2.predict([[pm25_prediction_4thday,pm10_of_4thday, o3_of_4thday,co_prediction_4thday]]))
+        no2_prediction_5thday = int(model2.predict([[pm25_prediction_5thday,pm10_of_5thday, o3_of_5thday,co_prediction_5thday]]))
+        prediction_tomorrow=max(pm25_prediction_tomorrow,pm10_of_tomorrow,o3_of_tomorrow,co_prediction_tomorrow,no2_prediction_tomorrow)
+        prediction_dayaftertomorrow=max(pm25_prediction_dayaftertomorrow,pm10_of_dayaftertomorrow,o3_of_dayaftertomorrow,co_prediction_dayaftertomorrow,no2_prediction_dayaftertomorrow)
+        prediction_3rdday=max(pm25_prediction_3rdday,pm10_of_3rdday,o3_of_3rdday,co_prediction_3rdday,no2_prediction_3rdday)
+        prediction_4thday=max(pm25_prediction_4thday,pm10_of_4thday,o3_of_4thday,co_prediction_4thday,no2_prediction_4thday)
+        prediction_5thday=max(pm25_prediction_5thday,pm10_of_5thday,o3_of_5thday,co_prediction_5thday,no2_prediction_5thday)
 
     # print(prediction_today,prediction_tomorrow,prediction_dayaftertomorrow,prediction_3rdday,prediction_4thday,prediction_5thday)
     # print(accuracy_score(prediction,y_test))
@@ -114,7 +153,7 @@ def admin(request):
     # output_number = random.randrange(1,100)
     # output_id=str(output_number)
     # print(output_number)
-
+    name=''
     info=''
     if request.method == 'POST':
         dataset = Datasetform(request.POST, request.FILES)
